@@ -50,5 +50,3 @@ cmake --build build
 ```bash
 cp build/screenshot-clip-qt ~/.local/bin/screenshot-clip
 ```
-
-Make sure ~/.local/bin is in your PATH.
