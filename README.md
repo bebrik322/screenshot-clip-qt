@@ -26,10 +26,10 @@ You can change the save directory with the SCREENSHOT_DIR environment variable:
 SCREENSHOT_DIR="$HOME/Pictures/Screenshots" screenshot-clip
 ```
 
-To take a screenshot without saving it to disk, set `SCREENSHOT_NOSAVE`:
+To take a screenshot without saving it to disk, use the `--no-save` flag:
 
 ```bash
-SCREENSHOT_NOSAVE=1 screenshot-clip
+screenshot-clip --no-save
 ```
 
 The image goes straight to the clipboard and the temporary file is deleted.
