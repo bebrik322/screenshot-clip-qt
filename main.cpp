@@ -1,9 +1,5 @@
-#include <QGuiApplication>
-#include <QClipboard>
-#include <QMimeData>
-#include <QImage>
+#include <QCoreApplication>
 #include <QProcess>
-#include <QTimer>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -13,7 +9,7 @@
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QCoreApplication app(argc, argv);
 
     bool nosave = std::getenv("SCREENSHOT_NOSAVE") != nullptr;
 
@@ -67,35 +63,24 @@ int main(int argc, char *argv[])
 
     QFile png_file(full_path);
     if (!png_file.open(QIODevice::ReadOnly)) {
-        std::cerr << "Failed to open screenshot file" << std::endl;
+        std::cerr << "Failed to open screenshot for copying" << std::endl;
         return 1;
     }
-    QByteArray png_bytes = png_file.readAll();
+    QByteArray png_data = png_file.readAll();
     png_file.close();
 
-    QImage image;
-    if (!image.load(full_path, "PNG")) {
-        std::cerr << "Failed to load PNG image" << std::endl;
+    QProcess wlCopy;
+    wlCopy.start("wl-copy", QStringList() << "--type" << "image/png");
+    wlCopy.write(png_data);
+    wlCopy.closeWriteChannel();
+    
+    if (!wlCopy.waitForFinished(5000)) {
+        std::cerr << "wl-copy failed" << std::endl;
         return 1;
     }
 
     if (nosave)
         QFile::remove(full_path);
 
-    QClipboard *cb = app.clipboard();
-    QMimeData *mime_data = new QMimeData();
-    mime_data->setImageData(image);
-    mime_data->setData("image/png", png_bytes);
-    cb->setMimeData(mime_data, QClipboard::Clipboard);
-
-    // Exit once Klipper has taken ownership, or after 2s if it hasn't.
-    QObject::connect(cb, &QClipboard::dataChanged, &app, [&app, cb]() {
-        if (!cb->ownsClipboard())
-            app.exit(0);
-    });
-    QTimer::singleShot(2000, &app, [&app]() {
-        app.exit(0);
-    });
-
-    return app.exec();
+    return 0;
 }
